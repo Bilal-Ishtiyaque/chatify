@@ -1,0 +1,63 @@
+import User from "../models/User.js";
+import bcrypt from "bcryptjs";
+import { generateToken } from "../lib/utils.js";
+
+export const signup = async (req, res) => {
+    const { fullName, email, password } = req.body;
+
+    try {
+        if (!fullName || !email || !password) {
+            return res.status(400).json({ message: "All fields are required" });
+        }
+
+        if (password.length < 6) {
+            return res.status(400).json({ message: "Password must be at least 6 characters" });
+        }
+
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+            return res.status(400).json({ message: "Invalid email format" });
+        }
+
+        const user = await User.findOne({ email: email });
+
+        if (user) {
+            return res.status(400).json({ message: "Email already exists" });
+        }
+
+        //password hashing
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash(password, salt);
+
+        //creating the new user
+        const newUser = new User({
+            fullName,
+            email,
+            password: hashedPassword,
+        });
+
+        if (newUser) {
+            // generateToken(newUser._id, res);
+            // await newUser.save();
+
+            // first i will save the user in the database, then issue auth cookie
+            // saving user in the database with the provided credentials
+            const savedUser = await newUser.save();
+            //generating a token and issue auth cookie..
+            generateToken(savedUser._id, res);
+
+            res.status(201).json({
+                _id: newUser._id,
+                fullname: newUser.fullName,
+                profilePic: newUser.profilePic,
+            });
+
+            // send email here
+        } else {
+            res.status(400).json({ message: "Invalid user data" });
+        }
+    } catch (error) {
+        console.log("Error in 'signup' controller:", error);
+        res.status(500).json({ message: "Internal server errorrrr" });
+    }
+};
