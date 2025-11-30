@@ -1,4 +1,4 @@
-import { signup } from "../controllers/auth.controller.js";
+import { signup, login, logout } from "../controllers/auth.controller.js";
 
 import {Router} from "express";
 
@@ -6,12 +6,8 @@ const router = Router();
 
 router.post("/signup", signup);
 
-router.get("/login", (_, res)=>{
-    res.send("hello login");
-});
+router.post("/login", login);
 
-router.get("/logout", (_, res)=>{
-    res.send("hello logout");
-});
+router.post("/logout", logout); // we'll use 'POST' in logout instead of 'GET'
 
 export default router;
