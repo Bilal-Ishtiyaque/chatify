@@ -3,8 +3,11 @@ import { signup, login, logout, updateProfile } from "../controllers/auth.contro
 import {Router} from "express";
 
 import { protectRoute } from "../middleware/auth.middleware.js";
+import { arcjetProtection } from "../middleware/arcjet.middleware.js";
 
 const router = Router();
+
+router.use(arcjetProtection); // by using it here like this, it will run before any of the below routes
 
 router.post("/signup", signup);
 
