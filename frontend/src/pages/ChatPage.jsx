@@ -19,6 +19,7 @@ const ChatPage = () => {
         <div className="w-80 bg-slate-800/50 backdrop-blur-sm flex flex-col"> {/* sidebar */}
           <ProfileHeader />
           <ActiveTabSwitch />
+
           <div className="flex-1 overflow-y-auto p-4 space-y-2">
             {activeTab === "chats" ? <ChatsList /> : <ContactList />}
           </div>
