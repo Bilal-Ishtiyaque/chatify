@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { useRef } from "react";
 
 import ChatHeader from "./ChatHeader";
 import NoChatHistoryPlaceholder from "./NoChatHistoryPlaceholder.jsx";
@@ -11,10 +12,19 @@ const ChatContainer = () => {
 
   const { selectedUser, getMessagesByUserId, messages, isMessagesLoading } = useChatStore();
   const { authUser } = useAuthStore();
+  const messageEndRef = useRef(null);
  
   useEffect(()=>{
     getMessagesByUserId(selectedUser._id);
   }, [selectedUser, getMessagesByUserId]);
+
+  //because it was necessary, otherwise messages would stacked up and we will scroll manually
+  useEffect(() => {
+    //it says if we have messages, scroll to the end, and when the messages add up or remove, run this again
+    if (messageEndRef.current) {
+      messageEndRef.current.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [messages]);
 
   return (
     <>
@@ -51,8 +61,12 @@ const ChatContainer = () => {
                 </div>
               </div>
             ))}
+            {/* scroll target */}
+            <div ref={messageEndRef}></div>
           </div>
-        ) : isMessagesLoading ? <MessagesLoadingSkeleton/> : (
+        ) : isMessagesLoading ? (
+          <MessagesLoadingSkeleton />
+        ) : (
           <NoChatHistoryPlaceholder name={selectedUser.fullName} />
         )}
       </div>

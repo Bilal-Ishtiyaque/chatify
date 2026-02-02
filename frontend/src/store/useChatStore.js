@@ -2,6 +2,8 @@ import { create } from "zustand";
 import { axiosInstance } from "../lib/axios";
 import toast from "react-hot-toast";
 
+import {useAuthStore} from "./useAuthStore.js";
+
 export const useChatStore = create((set, get) => ({
 
     allContacts: [],
@@ -54,6 +56,37 @@ export const useChatStore = create((set, get) => ({
             toast.error(error.response?.data.message || "Something went wrong");
         }finally{
             set({ isMessagesLoading: false });
+        }
+    },
+
+    sendMessage: async (messageData) => {
+        const {selectedUser, messages} = get();
+        const {authUser} = useAuthStore.getState();
+
+        // updating UI quickly without waiting for the message to save first in the db and then appear on UI
+        const tempId = `temp-${Date.now()}`;
+        const tempMessage = {
+          _id: tempId,
+          senderId: authUser._id,
+          receiverId: selectedUser._id,
+          text: messageData.text,
+          image: messageData.image,
+          createdAt: new Date().toISOString(),
+          isOptimistic: true, // flag to identify temporary messages (optional)
+        };
+        set({ messages: [...messages, tempMessage] });
+
+        try {
+          const res = await axiosInstance.post(
+            `/messages/send/${selectedUser._id}`,
+            messageData,
+          );
+          set({ messages: messages.concat(res.data) });
+        } catch (error) {
+          // if temporary message failed to save in the db, we can remove
+          set({ messages: messages });
+          
+          toast.error(error.response?.data?.message || "Something went wrong");
         }
     }
 
